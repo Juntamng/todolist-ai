@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Container, Typography, Paper } from "@mui/material";
+import { Box, Container, Typography, Paper, CircularProgress, Alert } from "@mui/material";
 import { TodoItem } from "./TodoItem";
 import { TodoFooter } from "./TodoFooter";
 import { TodoInput } from "./TodoInput";
@@ -8,31 +8,28 @@ import { Todo } from "../../types/todo";
 interface TodoAppProps {
   todos: Todo[];
   filter: string;
+  status: 'idle' | 'loading' | 'failed';
+  error: string | null;
   onAdd: (text: string) => void;
-  onToggle: (id: number) => void;
-  onDelete: (id: number) => void;
-  onEdit: (id: number, newText: string) => void;
-  onClearCompleted: () => void;
+  onToggle: (todo: Todo) => void;
+  onDelete: (id: string) => void;
+  onEdit: (id: string, title: string) => void;
   onFilterChange: (filter: string) => void;
 }
 
 export default function TodoApp({
   todos,
   filter,
+  status,
+  error,
   onAdd,
   onToggle,
   onDelete,
   onEdit,
-  onClearCompleted,
   onFilterChange
 }: TodoAppProps) {
-  const filteredTodos = todos.filter(todo => {
-    if (filter === 'active') return !todo.completed;
-    if (filter === 'completed') return todo.completed;
-    return true;
-  });
-
   const activeCount = todos.filter(todo => !todo.completed).length;
+  const hasCompleted = todos.some(todo => todo.completed);
 
   const handleNewTodo = (text: string) => {
     if (text.trim()) {
@@ -60,25 +57,49 @@ export default function TodoApp({
       <Paper elevation={2}>
         <TodoInput onSubmit={handleNewTodo} />
 
-        <Box>
-          {filteredTodos.map(todo => (
-            <TodoItem
-              key={todo.id}
-              text={todo.text}
-              completed={todo.completed}
-              onToggle={() => onToggle(todo.id)}
-              onDelete={() => onDelete(todo.id)}
-              onEdit={(newText) => onEdit(todo.id, newText)}
-            />
-          ))}
-        </Box>
+        {status === 'loading' && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+            <CircularProgress />
+          </Box>
+        )}
 
-        <TodoFooter
-          activeCount={activeCount}
-          filter={filter}
-          onFilterChange={onFilterChange}
-          onClearCompleted={onClearCompleted}
-        />
+        {status === 'failed' && (
+          <Alert severity="error" sx={{ m: 2 }}>
+            {error || 'An error occurred while loading todos'}
+          </Alert>
+        )}
+
+        {status === 'idle' && (
+          <>
+            <Box>
+              {todos.map(todo => (
+                <TodoItem
+                  key={todo.id}
+                  text={todo.title}
+                  completed={todo.completed}
+                  onToggle={() => onToggle(todo)}
+                  onDelete={() => onDelete(todo.id)}
+                  onEdit={(newText) => onEdit(todo.id, newText)}
+                />
+              ))}
+            </Box>
+
+            {todos.length === 0 && (
+              <Box sx={{ p: 3, textAlign: 'center', color: 'text.secondary' }}>
+                <Typography>No todos yet. Add one above!</Typography>
+              </Box>
+            )}
+
+            {todos.length > 0 && (
+              <TodoFooter
+                activeCount={activeCount}
+                filter={filter}
+                onFilterChange={onFilterChange}
+                hasCompleted={hasCompleted}
+              />
+            )}
+          </>
+        )}
       </Paper>
 
       <Box 

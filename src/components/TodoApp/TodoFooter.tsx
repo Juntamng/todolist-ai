@@ -1,19 +1,22 @@
 import React from 'react';
 import { Box, Button, ButtonGroup } from '@mui/material';
+import { useClearCompletedMutation } from '@/store/api/todoApi';
 
 interface TodoFooterProps {
   activeCount: number;
   filter: string;
   onFilterChange: (filter: string) => void;
-  onClearCompleted: () => void;
+  hasCompleted: boolean;
 }
 
 export function TodoFooter({
   activeCount,
   filter,
   onFilterChange,
-  onClearCompleted
+  hasCompleted
 }: TodoFooterProps) {
+  const [clearCompleted] = useClearCompletedMutation();
+
   return (
     <Box
       sx={{
@@ -56,13 +59,15 @@ export function TodoFooter({
         </Button>
       </ButtonGroup>
 
-      <Button
-        size="small"
-        onClick={onClearCompleted}
-        sx={{ color: 'inherit' }}
-      >
-        Clear completed
-      </Button>
+      {hasCompleted && (
+        <Button
+          size="small"
+          onClick={() => clearCompleted()}
+          sx={{ color: 'inherit' }}
+        >
+          Clear completed
+        </Button>
+      )}
     </Box>
   );
 } 

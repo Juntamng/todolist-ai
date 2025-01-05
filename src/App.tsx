@@ -4,15 +4,20 @@ import { Provider } from 'react-redux';
 import { TodoContainer } from './containers/TodoContainer';
 import { store } from './store';
 import theme from './theme';
+import { AuthProvider } from '@/contexts/AuthContext';
+import Header from '@/components/Header';
 
 function App() {
   return (
-    <Provider store={store}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <TodoContainer />
-      </ThemeProvider>
-    </Provider>
+    <AuthProvider>
+      <Provider store={store}>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <Header />
+          <TodoContainer />
+        </ThemeProvider>
+      </Provider>
+    </AuthProvider>
   );
 }
 

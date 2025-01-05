@@ -7,7 +7,7 @@ interface TodoItemProps {
   completed: boolean;
   onToggle: () => void;
   onDelete: () => void;
-  onEdit: (newText: string) => void;
+  onEdit: (text: string) => void;
 }
 
 export function TodoItem({ text, completed, onToggle, onDelete, onEdit }: TodoItemProps) {

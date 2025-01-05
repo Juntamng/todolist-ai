@@ -1,44 +1,65 @@
 import React from 'react';
 import TodoApp from '../components/TodoApp';
 import { useAppSelector, useAppDispatch } from '../hooks/redux';
+import { setFilter } from '../store/filterSlice';
+import { selectFilter } from '../store/todoSelectors';
 import {
-  addTodo,
-  toggleTodo,
-  deleteTodo,
-  editTodo,
-  clearCompleted,
-  setFilter
-} from '../store/todoSlice';
-import {
-  selectFilteredTodos,
-  selectFilter,
-  selectActiveCount
-} from '../store/todoSelectors';
+  useGetTodosQuery,
+  useAddTodoMutation,
+  useToggleTodoMutation,
+  useEditTodoMutation,
+  useDeleteTodoMutation
+} from '../store/api/todoApi';
+import { Todo } from '@/types/todo';
 
 export function TodoContainer() {
   const dispatch = useAppDispatch();
-  const todos = useAppSelector(selectFilteredTodos);
   const filter = useAppSelector(selectFilter);
-  const activeCount = useAppSelector(selectActiveCount);
 
-  const handleAdd = (text: string) => {
-    dispatch(addTodo(text));
+  const { data: todos = [], isLoading, error: queryError } = useGetTodosQuery();
+  const [addTodo] = useAddTodoMutation();
+  const [toggleTodo] = useToggleTodoMutation();
+  const [editTodo] = useEditTodoMutation();
+  const [deleteTodo] = useDeleteTodoMutation();
+
+  const filteredTodos = todos.filter(todo => {
+    if (filter === 'active') return !todo.completed;
+    if (filter === 'completed') return todo.completed;
+    return true;
+  });
+console.log(todos)
+  const activeCount = todos.filter(todo => !todo.completed).length;
+
+  const handleAdd = async (text: string) => {
+    try {
+      await addTodo({ title: text }).unwrap();
+    } catch (err) {
+      console.error('Failed to add todo:', err);
+    }
   };
 
-  const handleToggle = (id: number) => {
-    dispatch(toggleTodo(id));
+  const handleToggle = async (todo: Todo) => {
+    try {
+      await toggleTodo(todo).unwrap();
+    } catch (err) {
+      console.error('Failed to toggle todo:', err);
+    }
   };
 
-  const handleDelete = (id: number) => {
-    dispatch(deleteTodo(id));
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteTodo(id).unwrap();
+    } catch (err) {
+      console.error('Failed to delete todo:', err);
+    }
   };
 
-  const handleEdit = (id: number, newText: string) => {
-    dispatch(editTodo({ id, text: newText }));
-  };
-
-  const handleClearCompleted = () => {
-    dispatch(clearCompleted());
+  const handleEdit = async (id: string, title: string) => {
+    try {
+      await editTodo({ id, title }).unwrap();
+    } catch (err) {
+      console.error('Failed to edit todo:', err);
+    }
   };
 
   const handleFilterChange = (newFilter: string) => {
@@ -47,13 +68,14 @@ export function TodoContainer() {
 
   return (
     <TodoApp
-      todos={todos}
+      todos={filteredTodos}
       filter={filter}
+      status={isLoading ? 'loading' : queryError ? 'failed' : 'idle'}
+      error={queryError ? 'Failed to fetch todos' : null}
       onAdd={handleAdd}
       onToggle={handleToggle}
       onDelete={handleDelete}
       onEdit={handleEdit}
-      onClearCompleted={handleClearCompleted}
       onFilterChange={handleFilterChange}
     />
   );
