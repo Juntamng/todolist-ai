@@ -11,12 +11,14 @@ import {
   useDeleteTodoMutation
 } from '../store/api/todoApi';
 import { Todo } from '@/types/todo';
+import { useAuth } from '@/contexts/AuthContext';
 
 export function TodoContainer() {
   const dispatch = useAppDispatch();
   const filter = useAppSelector(selectFilter);
+  const { user } = useAuth();
 
-  const { data: todos = [], isLoading, error: queryError } = useGetTodosQuery();
+  const { data: todos = [], isLoading, error: queryError } = useGetTodosQuery(user?.id);
   const [addTodo] = useAddTodoMutation();
   const [toggleTodo] = useToggleTodoMutation();
   const [editTodo] = useEditTodoMutation();
@@ -27,7 +29,6 @@ export function TodoContainer() {
     if (filter === 'completed') return todo.completed;
     return true;
   });
-console.log(todos)
   const activeCount = todos.filter(todo => !todo.completed).length;
 
   const handleAdd = async (text: string) => {

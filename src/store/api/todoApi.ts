@@ -7,10 +7,9 @@ export const todoApi = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: '/' }),
   tagTypes: ['Todo'],
   endpoints: (builder) => ({
-    getTodos: builder.query<Todo[], void>({
-      queryFn: async () => {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return {
+    getTodos: builder.query<Todo[], string | undefined>({
+      queryFn: async (userId) => {
+        if (!userId) return {
           error: {
             status: 403,
             data: { message: 'Not authenticated' }
@@ -20,7 +19,7 @@ export const todoApi = createApi({
         const { data, error } = await supabase
           .from('todos')
           .select('*')
-          .eq('user_id', user.id)
+          .eq('user_id', userId)
           .order('created_at', { ascending: true });
 
         if (error) return {
@@ -31,7 +30,10 @@ export const todoApi = createApi({
         };
         return { data: data || [] };
       },
-      providesTags: ['Todo'],
+      providesTags: (result, error, arg) => 
+        result 
+          ? [...result.map(({ id }) => ({ type: 'Todo' as const, id })), 'Todo']
+          : ['Todo']
     }),
 
     addTodo: builder.mutation<Todo, NewTodo>({
