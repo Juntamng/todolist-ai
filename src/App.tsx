@@ -5,19 +5,19 @@ import { TodoContainer } from './containers/TodoContainer';
 import { store } from './store';
 import theme from './theme';
 import { AuthProvider } from '@/contexts/AuthContext';
-import Header from '@/components/Header';
+import { Header } from '@/components/Header';
 
 function App() {
   return (
-    <AuthProvider>
-      <Provider store={store}>
+    <Provider store={store}>
+      <AuthProvider>
         <ThemeProvider theme={theme}>
           <CssBaseline />
           <Header />
           <TodoContainer />
         </ThemeProvider>
-      </Provider>
-    </AuthProvider>
+      </AuthProvider>
+    </Provider>
   );
 }
 
